@@ -1,0 +1,9 @@
+---
+title: "ttldtor's blog"
+listing:
+  contents: [en/posts, ru/posts]
+  sort: "date desc"
+  type: default
+  categories: true
+  feed: true
+---

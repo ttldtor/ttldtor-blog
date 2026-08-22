@@ -1,0 +1,36 @@
+project:
+  type: website
+
+website:
+  description: "ttldtor's blog"
+  site-url: https://ttldtor.github.io/ttldtor-blog/
+  title: "ttldtor's blog"
+  navbar:
+    right:
+      - text: RU
+        href: ru/index.html
+      - text: EN
+        href: en/index.html
+      - text: "|"
+      - about.qmd
+      - text: "|"
+      - icon: github
+        href: https://github.com/ttldtor
+      - icon: twitter-x
+        href: https://x.com/ttldtor
+      - icon: threads
+        href: https://www.threads.com/@sadcatoly
+      - icon: instagram
+        href: https://www.instagram.com/sadcatoly/
+      - icon: facebook
+        href: https://www.facebook.com/profile.php?id=100091665519668
+      - icon: bluesky
+        href: https://bsky.app/profile/ttldtor.bsky.social
+      - icon: linkedin
+        href: https://www.linkedin.com/in/anatoly-kalin-3611802b1/
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+    css: styles.css

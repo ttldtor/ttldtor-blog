@@ -1,0 +1,9 @@
+﻿---
+title: "First post"
+description: "First post"
+author: "ttldtor"
+date: 2026-08-23
+categories: [en]
+---
+
+I started this blog as a place to brain-dump when socials and Telegram channels just don’t cut it.

@@ -1,0 +1,31 @@
+---
+title: "About"
+image: SadCatoly.jpg
+about:
+  template: jolla
+  links:
+    - icon: github
+      text: Github
+      href: https://github.com/ttldtor
+    - icon: twitter-x
+      text: Twitter|X
+      href: https://x.com/ttldtor
+    - icon: threads
+      text: Threads
+      href: https://www.threads.com/@sadcatoly
+    - icon: instagram
+      text: Instagram
+      href: https://www.instagram.com/sadcatoly/
+    - icon: facebook
+      text: Facebook
+      href: https://www.facebook.com/profile.php?id=100091665519668
+    - icon: bluesky
+      text: Bluesky
+      href: https://bsky.app/profile/ttldtor.bsky.social
+    - icon: linkedin
+      text: LinkedIn
+      href: https://www.linkedin.com/in/anatoly-kalin-3611802b1/
+
+---
+
+Anarxo-byteshifter, art-lover, cat-lover, science-lover
