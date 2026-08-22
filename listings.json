@@ -1,0 +1,21 @@
+[
+  {
+    "listing": "/index.html",
+    "items": [
+      "/en/posts/2026-08-23-first-post/index.html",
+      "/ru/posts/2026-08-23-first-post/index.html"
+    ]
+  },
+  {
+    "listing": "/en/index.html",
+    "items": [
+      "/en/posts/2026-08-23-first-post/index.html"
+    ]
+  },
+  {
+    "listing": "/ru/index.html",
+    "items": [
+      "/ru/posts/2026-08-23-first-post/index.html"
+    ]
+  }
+]

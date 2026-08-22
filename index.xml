@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>ttldtor&#39;s blog</title>
+<link>https://ttldtor.github.io/ttldtor-blog/</link>
+<atom:link href="https://ttldtor.github.io/ttldtor-blog/index.xml" rel="self" type="application/rss+xml"/>
+<description>ttldtor&#39;s blog</description>
+<generator>quarto-1.10.18</generator>
+<lastBuildDate>Sat, 22 Aug 2026 21:00:00 GMT</lastBuildDate>
+<item>
+  <title>First post</title>
+  <dc:creator>ttldtor </dc:creator>
+  <link>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-08-23-first-post/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>I started this blog as a place to brain-dump when socials and Telegram channels just don’t cut it.</p>
+
+
+
+ ]]></description>
+  <category>en</category>
+  <guid>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-08-23-first-post/</guid>
+  <pubDate>Sat, 22 Aug 2026 21:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Первый пост</title>
+  <dc:creator>ttldtor </dc:creator>
+  <link>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-08-23-first-post/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Этот блог был задуман для того, чтобы я мог сюда дампать мозг, если не справляются социалочки, канальчики в телеграме.</p>
+
+
+
+ ]]></description>
+  <category>ru</category>
+  <guid>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-08-23-first-post/</guid>
+  <pubDate>Sat, 22 Aug 2026 21:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>
