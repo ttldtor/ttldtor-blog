@@ -11,23 +11,30 @@ website:
         href: ru/index.html
       - text: EN
         href: en/index.html
-      - text: "|"
+      - text: "·"
       - about.qmd
-      - text: "|"
+      - text: "·"
       - icon: github
         href: https://github.com/ttldtor
+        aria-label: GitHub
       - icon: twitter-x
         href: https://x.com/ttldtor
+        aria-label: Twitter|X
       - icon: threads
         href: https://www.threads.com/@sadcatoly
+        aria-label: Threads
       - icon: instagram
         href: https://www.instagram.com/sadcatoly/
+        aria-label: Instagram
       - icon: facebook
         href: https://www.facebook.com/profile.php?id=100091665519668
+        aria-label: Facebook
       - icon: bluesky
         href: https://bsky.app/profile/ttldtor.bsky.social
+        aria-label: BlueSky
       - icon: linkedin
         href: https://www.linkedin.com/in/anatoly-kalin-3611802b1/
+        aria-label: LinkedIn
 format:
   html:
     theme:
