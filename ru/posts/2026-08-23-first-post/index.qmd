@@ -1,6 +1,6 @@
 ﻿---
 title: "Первый пост"
-description: "Первый пост"
+description: ""
 author: "ttldtor"
 date: 2026-08-23
 categories: [ru]

@@ -1,6 +1,6 @@
 ﻿---
 title: "First post"
-description: "First post"
+description: ""
 author: "ttldtor"
 date: 2026-08-23
 categories: [en]
