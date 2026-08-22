@@ -10,7 +10,7 @@
 <atom:link href="https://ttldtor.github.io/ttldtor-blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>ttldtor&#39;s blog</description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Sat, 22 Aug 2026 21:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 23 Aug 2026 00:00:00 GMT</lastBuildDate>
 <item>
   <title>First post</title>
   <dc:creator>ttldtor </dc:creator>
@@ -28,7 +28,7 @@
  ]]></description>
   <category>en</category>
   <guid>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-08-23-first-post/</guid>
-  <pubDate>Sat, 22 Aug 2026 21:00:00 GMT</pubDate>
+  <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 <item>
   <title>Первый пост</title>
@@ -47,7 +47,7 @@
  ]]></description>
   <category>ru</category>
   <guid>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-08-23-first-post/</guid>
-  <pubDate>Sat, 22 Aug 2026 21:00:00 GMT</pubDate>
+  <pubDate>Sun, 23 Aug 2026 00:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
