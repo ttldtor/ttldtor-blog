@@ -1,17 +1,38 @@
 [
   {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Anarxo-byteshifter, art-lover, cat-lover, science-lover"
+  },
+  {
+    "objectID": "ru/posts/2026-09-15-process-fix/index.html",
+    "href": "ru/posts/2026-09-15-process-fix/index.html",
+    "title": "Фикс парсера в Process",
+    "section": "",
+    "text": "Пофиксил парсер для /proc/self/status, чтобы правильно считвать инфу о потребляемой памяти процессом в либе Process.\nДобавил тестов. Работает шикарно. Дальше надо будет разобраться с подсчётом виртуальной памяти.\nEN"
+  },
+  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "ttldtor’s blog",
     "section": "",
-    "text": "First post\n\n\n\nen\n\n\n\n\n\n\n\n\n\nAug 23, 2026\n\n\nttldtor\n\n\n\n\n\n\n\n\n\n\n\n\nПервый пост\n\n\n\nru\n\n\n\n\n\n\n\n\n\nAug 23, 2026\n\n\nttldtor\n\n\n\n\n\nNo matching items"
+    "text": "Parser Fix in Process\n\n\n\nen\n\nProcess\n\nLinux\n\n\n\n\n\n\n\n\n\nSep 15, 2026\n\n\nttldtor\n\n\n\n\n\n\n\n\n\n\n\n\nФикс парсера в Process\n\n\n\nru\n\nProcess\n\nLinux\n\n\n\n\n\n\n\n\n\nSep 15, 2026\n\n\nttldtor\n\n\n\n\n\n\n\n\n\n\n\n\nFirst post\n\n\n\nen\n\n\n\n\n\n\n\n\n\nAug 23, 2026\n\n\nttldtor\n\n\n\n\n\n\n\n\n\n\n\n\nПервый пост\n\n\n\nru\n\n\n\n\n\n\n\n\n\nAug 23, 2026\n\n\nttldtor\n\n\n\n\n\nNo matching items"
   },
   {
-    "objectID": "ru/posts/2026-08-23-first-post/index.html",
-    "href": "ru/posts/2026-08-23-first-post/index.html",
-    "title": "Первый пост",
+    "objectID": "en/posts/2026-09-15-process-fix/index.html",
+    "href": "en/posts/2026-09-15-process-fix/index.html",
+    "title": "Parser Fix in Process",
     "section": "",
-    "text": "Этот блог был задуман для того, чтобы я мог сюда дампать мозг, если не справляются социалочки, канальчики в телеграме.\nEN"
+    "text": "I fixed the /proc/self/status parser in the Process library so that it correctly reads information about a process’s memory usage.\nI also added more tests. It works great. Next, I need to figure out how to calculate virtual memory usage properly.\nRU"
+  },
+  {
+    "objectID": "en/index.html",
+    "href": "en/index.html",
+    "title": "ttldtor’s blog",
+    "section": "",
+    "text": "Parser Fix in Process\n\n\n\nen\n\nProcess\n\nLinux\n\n\n\n\n\n\n\n\n\nSep 15, 2026\n\n\nttldtor\n\n\n\n\n\n\n\n\n\n\n\n\nFirst post\n\n\n\nen\n\n\n\n\n\n\n\n\n\nAug 23, 2026\n\n\nttldtor\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "en/posts/2026-08-23-first-post/index.html",
@@ -21,24 +42,17 @@
     "text": "I started this blog as a place to brain-dump when socials and Telegram channels just don’t cut it.\nRU"
   },
   {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "Anarxo-byteshifter, art-lover, cat-lover, science-lover"
-  },
-  {
-    "objectID": "en/index.html",
-    "href": "en/index.html",
-    "title": "ttldtor’s blog",
-    "section": "",
-    "text": "First post\n\n\n\nen\n\n\n\n\n\n\n\n\n\nAug 23, 2026\n\n\nttldtor\n\n\n\n\n\nNo matching items"
-  },
-  {
     "objectID": "ru/index.html",
     "href": "ru/index.html",
     "title": "ttldtor’s blog",
     "section": "",
-    "text": "Первый пост\n\n\n\nru\n\n\n\n\n\n\n\n\n\n23 авг. 2026 г.\n\n\nttldtor\n\n\n\n\n\nНет подходящих элементов"
+    "text": "Фикс парсера в Process\n\n\n\nru\n\nProcess\n\nLinux\n\n\n\n\n\n\n\n\n\n15 сент. 2026 г.\n\n\nttldtor\n\n\n\n\n\n\n\n\n\n\n\n\nПервый пост\n\n\n\nru\n\n\n\n\n\n\n\n\n\n23 авг. 2026 г.\n\n\nttldtor\n\n\n\n\n\nНет подходящих элементов"
+  },
+  {
+    "objectID": "ru/posts/2026-08-23-first-post/index.html",
+    "href": "ru/posts/2026-08-23-first-post/index.html",
+    "title": "Первый пост",
+    "section": "",
+    "text": "Этот блог был задуман для того, чтобы я мог сюда дампать мозг, если не справляются социалочки, канальчики в телеграме.\nEN"
   }
 ]

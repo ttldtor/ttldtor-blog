@@ -10,7 +10,30 @@
 <atom:link href="https://ttldtor.github.io/ttldtor-blog/ru/index.xml" rel="self" type="application/rss+xml"/>
 <description>ttldtor&#39;s blog</description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Sun, 23 Aug 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 15 Sep 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Фикс парсера в Process</title>
+  <dc:creator>ttldtor </dc:creator>
+  <link>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-09-15-process-fix/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Пофиксил парсер для <code>/proc/self/status</code>, чтобы правильно считвать инфу о потребляемой памяти процессом в либе <a href="https://github.com/ttldtor/Process">Process</a>.<br>
+Добавил тестов. Работает шикарно. Дальше надо будет разобраться с подсчётом виртуальной памяти.</p>
+<p><a href="../../../en/posts/2026-09-15-process-fix/index.html">EN</a></p>
+
+
+
+ ]]></description>
+  <category>ru</category>
+  <category>Process</category>
+  <category>Linux</category>
+  <guid>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-09-15-process-fix/</guid>
+  <pubDate>Tue, 15 Sep 2026 00:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Первый пост</title>
   <dc:creator>ttldtor </dc:creator>

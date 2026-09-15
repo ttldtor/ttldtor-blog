@@ -10,7 +10,30 @@
 <atom:link href="https://ttldtor.github.io/ttldtor-blog/en/index.xml" rel="self" type="application/rss+xml"/>
 <description>ttldtor&#39;s blog</description>
 <generator>quarto-1.10.18</generator>
-<lastBuildDate>Sun, 23 Aug 2026 00:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 15 Sep 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Parser Fix in Process</title>
+  <dc:creator>ttldtor </dc:creator>
+  <link>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-09-15-process-fix/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>I fixed the <code>/proc/self/status</code> parser in the <a href="https://github.com/ttldtor/Process">Process</a> library so that it correctly reads information about a process’s memory usage.<br>
+I also added more tests. It works great. Next, I need to figure out how to calculate virtual memory usage properly.</p>
+<p><a href="../../../ru/posts/2026-09-15-process-fix/index.html">RU</a></p>
+
+
+
+ ]]></description>
+  <category>en</category>
+  <category>Process</category>
+  <category>Linux</category>
+  <guid>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-09-15-process-fix/</guid>
+  <pubDate>Tue, 15 Sep 2026 00:00:00 GMT</pubDate>
+</item>
 <item>
   <title>First post</title>
   <dc:creator>ttldtor </dc:creator>
