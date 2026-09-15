@@ -1,0 +1,12 @@
+﻿---
+title: "Фикс парсера в Process"
+description: ""
+author: "ttldtor"
+date: 2026-09-15
+categories: [ru, Process, Linux]
+---
+
+Пофиксил парсер для `/proc/self/status`, чтобы правильно считвать инфу о потребляемой памяти процессом в либе [Process](https://github.com/ttldtor/Process).  
+Добавил тестов. Работает шикарно. Дальше надо будет разобраться с подсчётом виртуальной памяти.
+
+[EN](../../../en/posts/2026-09-15-process-fix/index.qmd)

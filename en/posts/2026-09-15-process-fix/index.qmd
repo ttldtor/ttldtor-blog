@@ -1,0 +1,12 @@
+﻿---
+title: "Parser Fix in Process"
+description: ""
+author: "ttldtor"
+date: 2026-09-15
+categories: [en, Process, Linux]
+---
+
+I fixed the `/proc/self/status` parser in the [Process](https://github.com/ttldtor/Process) library so that it correctly reads information about a process's memory usage.  
+I also added more tests. It works great. Next, I need to figure out how to calculate virtual memory usage properly.
+
+[RU](../../../ru/posts/2026-09-15-process-fix/index.qmd)
