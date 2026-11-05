@@ -1,35 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ttldtor.github.io/ttldtor-blog/about.html</loc>
-    <lastmod>2026-09-15T20:54:05.229Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-09-15-process-fix/index.html</loc>
-    <lastmod>2026-09-15T20:54:05.231Z</lastmod>
-  </url>
-  <url>
     <loc>https://ttldtor.github.io/ttldtor-blog/index.html</loc>
-    <lastmod>2026-09-15T20:54:05.230Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-09-15-process-fix/index.html</loc>
-    <lastmod>2026-09-15T20:54:05.230Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ttldtor.github.io/ttldtor-blog/en/index.html</loc>
-    <lastmod>2026-09-15T20:54:05.229Z</lastmod>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
   </url>
   <url>
     <loc>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-08-23-first-post/index.html</loc>
-    <lastmod>2026-09-15T20:54:05.230Z</lastmod>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-11-05-dbghelp-undname/index.html</loc>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
   </url>
   <url>
     <loc>https://ttldtor.github.io/ttldtor-blog/ru/index.html</loc>
-    <lastmod>2026-09-15T20:54:05.230Z</lastmod>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-09-15-process-fix/index.html</loc>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-11-05-dbghelp-undname/index.html</loc>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
   </url>
   <url>
     <loc>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-08-23-first-post/index.html</loc>
-    <lastmod>2026-09-15T20:54:05.231Z</lastmod>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ttldtor.github.io/ttldtor-blog/about.html</loc>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-09-15-process-fix/index.html</loc>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ttldtor.github.io/ttldtor-blog/en/index.html</loc>
+    <lastmod>2026-11-05T16:28:13.183Z</lastmod>
   </url>
 </urlset>

@@ -9,8 +9,602 @@
 <link>https://ttldtor.github.io/ttldtor-blog/</link>
 <atom:link href="https://ttldtor.github.io/ttldtor-blog/index.xml" rel="self" type="application/rss+xml"/>
 <description>ttldtor&#39;s blog</description>
-<generator>quarto-1.10.18</generator>
-<lastBuildDate>Tue, 15 Sep 2026 00:00:00 GMT</lastBuildDate>
+<generator>quarto-1.11.9</generator>
+<lastBuildDate>Thu, 05 Nov 2026 00:00:00 GMT</lastBuildDate>
+<item>
+  <title>Where did dbghelp put my function parameters?</title>
+  <dc:creator>ttldtor </dc:creator>
+  <link>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-11-05-dbghelp-undname/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>I was checking a DLL’s exported symbols: undecorating their names with <a href="https://learn.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-undecoratesymbolname">UnDecorateSymbolName</a> and comparing them with a reference list in the repository. Everything worked locally, but the check failed on <code>windows-2022</code> in CI.</p>
+<p>Turns out one version of <code>dbghelp.dll</code> undecorates the name just fine, while another loses part of the signature along the way. And it happens because of a flag that was only supposed to get rid of things like <code>__cdecl</code> and <code>__ptr64</code> in the output.</p>
+<section id="what-went-missing" class="level2">
+<h2 class="anchored" data-anchor-id="what-went-missing">What went missing</h2>
+<p>Here’s a method with a <code>std::function&lt;void(const ErrorInfo &amp;)&gt;</code> parameter. Its decorated name looks like this:</p>
+<pre class="text"><code>?setHandler@ErrorManager@v8@dxfcpp@@SAXV?$function@$$A6AXAEBUErrorInfo@v8@dxfcpp@@@Z@std@@@Z</code></pre>
+<p>I undecorate it with <code>UNDNAME_NO_MS_KEYWORDS | UNDNAME_NO_ACCESS_SPECIFIERS</code> (<code>0x0002 | 0x0080</code>). I wanted a name without Microsoft’s keywords and <code>public:</code>:</p>
+<pre class="text"><code>static void dxfcpp::v8::ErrorManager::setHandler(class std::function&lt;void (struct dxfcpp::v8::ErrorInfo const &amp;)&gt;)</code></pre>
+<p>Instead, I get:</p>
+<pre class="text"><code>static void dxfcpp::v8::ErrorManager::setHandler(class std::function&lt;void &gt;)</code></pre>
+<p>The function parameters inside <code>std::function</code> have gone missing. Only the return type, <code>void</code>, is left.</p>
+<p>The same thing happened with <code>SimpleHandler&lt;void (...)&gt;</code> and the other templates with function types that I tested.</p>
+</section>
+<section id="trying-different-versions-of-dbghelp.dll" class="level2">
+<h2 class="anchored" data-anchor-id="trying-different-versions-of-dbghelp.dll">Trying different versions of <code>dbghelp.dll</code></h2>
+<p>Same name, same flags, four copies of the library:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><code>dbghelp.dll</code> version</th>
+<th>Source</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>10.0.10150</td>
+<td>Visual Studio 2022, Graphics Debugger</td>
+<td>correct</td>
+</tr>
+<tr class="even">
+<td>10.0.22621</td>
+<td>Windows SDK, <code>Debuggers\x64</code></td>
+<td><code>std::function&lt;void &gt;</code></td>
+</tr>
+<tr class="odd">
+<td>10.0.25921</td>
+<td>Visual Studio 2022, TestPlatform</td>
+<td><code>std::function&lt;void &gt;</code></td>
+</tr>
+<tr class="even">
+<td>10.0.26100</td>
+<td>Windows 11 24H2 <code>System32</code></td>
+<td>correct</td>
+</tr>
+</tbody>
+</table>
+<p>So I couldn’t reproduce the problem locally on a recent Windows 11, but CI had a version that loses the parameters.</p>
+<p>I don’t know which version introduced the problem or when it was fixed. I couldn’t find anything about it in the <code>dbghelp</code> documentation or release notes. All I can say from my checks is that it happens on 22621 and 25921, but not on 26100.</p>
+<p>The old 10.0.10150 undecorated this particular example correctly, but it has a different problem: it doesn’t undecorate some names with rvalue references (<code>$$Q</code>) at all and returns them unchanged.</p>
+</section>
+<section id="why-the-flag" class="level2">
+<h2 class="anchored" data-anchor-id="why-the-flag">Why the flag?</h2>
+<p>Without <code>UNDNAME_NO_MS_KEYWORDS</code>, those same versions undecorate the name correctly. I tried different combinations on 10.0.22621:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Flags</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>0x0000</code></td>
+<td><code>public: static void __cdecl ...setHandler(class std::function&lt;void __cdecl(struct dxfcpp::v8::ErrorInfo const &amp; __ptr64)&gt;)</code></td>
+</tr>
+<tr class="even">
+<td><code>0x0080</code></td>
+<td><code>static void __cdecl ...setHandler(class std::function&lt;void __cdecl(struct dxfcpp::v8::ErrorInfo const &amp; __ptr64)&gt;)</code></td>
+</tr>
+<tr class="odd">
+<td><code>0x0002</code></td>
+<td><code>public: static void ...setHandler(class std::function&lt;void &gt;)</code></td>
+</tr>
+<tr class="even">
+<td><code>0x0082</code></td>
+<td><code>static void ...setHandler(class std::function&lt;void &gt;)</code></td>
+</tr>
+</tbody>
+</table>
+<p>It looks like when <code>dbghelp</code> removes <code>__cdecl</code> from <code>void __cdecl(...)</code>, the parameter list after it goes away too. That’s a guess based on the output, though; I haven’t looked inside the library.</p>
+</section>
+<section id="try-it-yourself" class="level2">
+<h2 class="anchored" data-anchor-id="try-it-yourself">Try it yourself</h2>
+<p>You can pick a copy of <code>dbghelp.dll</code> and run this script:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> ctypes, sys</span>
+<span id="cb4-2"></span>
+<span id="cb4-3">name <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">b"?setHandler@ErrorManager@v8@dxfcpp@@SAXV?$function@$$A6AXAEBUErrorInfo@v8@dxfcpp@@@Z@std@@@Z"</span></span>
+<span id="cb4-4">dbghelp <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> ctypes.WinDLL(sys.argv[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>])  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Full path to the dbghelp.dll to test</span></span>
+<span id="cb4-5"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> ctypes.create_string_buffer(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8192</span>)</span>
+<span id="cb4-6"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> flags <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> (<span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0000</span>, <span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0080</span>, <span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0002</span>, <span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0082</span>):</span>
+<span id="cb4-7">    dbghelp.UnDecorateSymbolName(name, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>), flags)</span>
+<span id="cb4-8">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">hex</span>(flags), <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>.value.decode())</span></code></pre></div></div>
+<p>For example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb5-1">py <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> undname<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">py</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\dbghelp.dll"</span></span>
+<span id="cb5-2">py <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> undname<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">py</span> C<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span>\Windows\System32\dbghelp<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dll</span></span></code></pre></div></div>
+<p><code>undname.exe</code> from MSVC 14.40 undecorates this name correctly, though.</p>
+</section>
+<section id="the-workaround" class="level2">
+<h2 class="anchored" data-anchor-id="the-workaround">The workaround</h2>
+<p>In the end, I stopped passing <code>UNDNAME_NO_MS_KEYWORDS</code> and started removing the keywords from the output myself.</p>
+<p>In the output with <code>UNDNAME_NO_ACCESS_SPECIFIERS</code> (<code>0x0080</code>), I found calling conventions before the name or parameter list (<code>void __cdecl f</code>, <code>void __cdecl(</code>), and modifiers after pointers and references (<code>const &amp; __ptr64)</code>, <code>)const __ptr64&amp;</code>).</p>
+<p>Here’s the expression I ended up using for those:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> re</span>
+<span id="cb6-2"></span>
+<span id="cb6-3">MS_KEYWORDS <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> re.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">compile</span>(<span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">r"__</span>(?:<span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">cdecl</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">stdcall</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">fastcall</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">thiscall</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">vectorcall</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">clrcall</span>)<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\b</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> </span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> __</span>(?:<span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">ptr64</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">ptr32</span>)<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\b</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb6-4"></span>
+<span id="cb6-5"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> undecorate(name):</span>
+<span id="cb6-6">    dbghelp.UnDecorateSymbolName(name.encode(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ascii"</span>), <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>), <span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0080</span>)  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># UNDNAME_NO_ACCESS_SPECIFIERS</span></span>
+<span id="cb6-7">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># A const method ends with a space ("...(void)const "), so remove that too.</span></span>
+<span id="cb6-8">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> MS_KEYWORDS.sub(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>.value.decode(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ascii"</span>)).rstrip()</span></code></pre></div></div>
+<p>Here, <code>dbghelp</code> and <code>buffer</code> are the objects from the example above. On my DLL with 3,351 exported names, the results from 10.0.22621, 10.0.25921 and 10.0.26100 matched character for character after this processing.</p>
+<p>There’s one difference from the built-in flag’s output: the ref-qualifier has no space before it — <code>const&amp;</code> instead of <code>const &amp;</code>. That doesn’t get in the way of my comparison as long as the reference list is produced the same way.</p>
+<p>Another option is to compare the decorated names themselves and keep the undecorated ones for people to read. You’d still need to take into account which compiler produced the names, though.</p>
+<p><a href="../../../ru/posts/2026-11-05-dbghelp-undname/index.html">RU</a></p>
+
+
+</section>
+
+ ]]></description>
+  <category>en</category>
+  <category>C++</category>
+  <category>Windows</category>
+  <category>dbghelp</category>
+  <guid>https://ttldtor.github.io/ttldtor-blog/en/posts/2026-11-05-dbghelp-undname/</guid>
+  <pubDate>Thu, 05 Nov 2026 00:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>Куда dbghelp дел параметры функции</title>
+  <dc:creator>ttldtor </dc:creator>
+  <link>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-11-05-dbghelp-undname/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+<p>Проверял тут экспортируемые символы DLL: раскрывал их имена через <a href="https://learn.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-undecoratesymbolname">UnDecorateSymbolName</a> и сравнивал с эталоном в репозитории. Локально всё было хорошо, а вот в CI на <code>windows-2022</code> проверка падала.</p>
+<p>В итоге оказалось, что одна версия <code>dbghelp.dll</code> раскрывает имя нормально, а другая по дороге теряет кусок сигнатуры. И происходит это из-за флага, который вообще-то должен был просто убрать из вывода всякие <code>__cdecl</code> и <code>__ptr64</code>.</p>
+<section id="что-именно-отвалилось" class="level2">
+<h2 class="anchored" data-anchor-id="что-именно-отвалилось">Что именно отвалилось</h2>
+<p>Есть, например, метод с параметром <code>std::function&lt;void(const ErrorInfo &amp;)&gt;</code>. Его decorated-имя выглядит вот так:</p>
+<pre class="text"><code>?setHandler@ErrorManager@v8@dxfcpp@@SAXV?$function@$$A6AXAEBUErrorInfo@v8@dxfcpp@@@Z@std@@@Z</code></pre>
+<p>Раскрываю его с флагами <code>UNDNAME_NO_MS_KEYWORDS | UNDNAME_NO_ACCESS_SPECIFIERS</code> (<code>0x0002 | 0x0080</code>). Хотел получить имя без майкрософтовских ключевых слов и <code>public:</code>:</p>
+<pre class="text"><code>static void dxfcpp::v8::ErrorManager::setHandler(class std::function&lt;void (struct dxfcpp::v8::ErrorInfo const &amp;)&gt;)</code></pre>
+<p>А получаю:</p>
+<pre class="text"><code>static void dxfcpp::v8::ErrorManager::setHandler(class std::function&lt;void &gt;)</code></pre>
+<p>Параметры функции внутри <code>std::function</code> куда-то делись. Остался только возвращаемый <code>void</code>.</p>
+<p>С <code>SimpleHandler&lt;void (...)&gt;</code> и другими проверенными шаблонами с функциональным типом получилось то же самое.</p>
+</section>
+<section id="проверил-разные-dbghelp.dll" class="level2">
+<h2 class="anchored" data-anchor-id="проверил-разные-dbghelp.dll">Проверил разные <code>dbghelp.dll</code></h2>
+<p>Одно и то же имя, те же флаги, четыре копии библиотеки:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Версия <code>dbghelp.dll</code></th>
+<th>Откуда</th>
+<th>Результат</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>10.0.10150</td>
+<td>Visual Studio 2022, Graphics Debugger</td>
+<td>правильно</td>
+</tr>
+<tr class="even">
+<td>10.0.22621</td>
+<td>Windows SDK, <code>Debuggers\x64</code></td>
+<td><code>std::function&lt;void &gt;</code></td>
+</tr>
+<tr class="odd">
+<td>10.0.25921</td>
+<td>Visual Studio 2022, TestPlatform</td>
+<td><code>std::function&lt;void &gt;</code></td>
+</tr>
+<tr class="even">
+<td>10.0.26100</td>
+<td><code>System32</code> Windows 11 24H2</td>
+<td>правильно</td>
+</tr>
+</tbody>
+</table>
+<p>То есть на свежей Windows 11 локально ошибка не воспроизводилась, а в CI попалась версия, которая теряет параметры.</p>
+<p>В какой версии это сломалось и когда починилось, не знаю. В документации и списках изменений <code>dbghelp</code> ничего про это не нашёл. По моим проверкам можно сказать только, что в 22621 и 25921 проблема есть, а в 26100 уже нет.</p>
+<p>Старая 10.0.10150 этот конкретный пример раскрыла нормально, но там другая беда: часть имён с rvalue-ссылками (<code>$$Q</code>) она вообще не раскрывает и возвращает как есть.</p>
+</section>
+<section id="а-почему-флаг" class="level2">
+<h2 class="anchored" data-anchor-id="а-почему-флаг">А почему флаг?</h2>
+<p>Если убрать <code>UNDNAME_NO_MS_KEYWORDS</code>, те же версии раскрывают имя правильно. Проверил разные комбинации на 10.0.22621:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Флаги</th>
+<th>Результат</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>0x0000</code></td>
+<td><code>public: static void __cdecl ...setHandler(class std::function&lt;void __cdecl(struct dxfcpp::v8::ErrorInfo const &amp; __ptr64)&gt;)</code></td>
+</tr>
+<tr class="even">
+<td><code>0x0080</code></td>
+<td><code>static void __cdecl ...setHandler(class std::function&lt;void __cdecl(struct dxfcpp::v8::ErrorInfo const &amp; __ptr64)&gt;)</code></td>
+</tr>
+<tr class="odd">
+<td><code>0x0002</code></td>
+<td><code>public: static void ...setHandler(class std::function&lt;void &gt;)</code></td>
+</tr>
+<tr class="even">
+<td><code>0x0082</code></td>
+<td><code>static void ...setHandler(class std::function&lt;void &gt;)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Похоже, когда <code>dbghelp</code> убирает <code>__cdecl</code> из <code>void __cdecl(...)</code>, заодно отваливается и следующий за ним список параметров. Но это предположение по результату, внутрь библиотеки я не заглядывал.</p>
+</section>
+<section id="как-проверить-у-себя" class="level2">
+<h2 class="anchored" data-anchor-id="как-проверить-у-себя">Как проверить у себя</h2>
+<p>Можно взять нужную копию <code>dbghelp.dll</code> и запустить вот такой скрипт:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> ctypes, sys</span>
+<span id="cb4-2"></span>
+<span id="cb4-3">name <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">b"?setHandler@ErrorManager@v8@dxfcpp@@SAXV?$function@$$A6AXAEBUErrorInfo@v8@dxfcpp@@@Z@std@@@Z"</span></span>
+<span id="cb4-4">dbghelp <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> ctypes.WinDLL(sys.argv[<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>])  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Full path to the dbghelp.dll to test</span></span>
+<span id="cb4-5"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> ctypes.create_string_buffer(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8192</span>)</span>
+<span id="cb4-6"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> flags <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> (<span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0000</span>, <span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0080</span>, <span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0002</span>, <span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0082</span>):</span>
+<span id="cb4-7">    dbghelp.UnDecorateSymbolName(name, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>), flags)</span>
+<span id="cb4-8">    <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">hex</span>(flags), <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>.value.decode())</span></code></pre></div></div>
+<p>Например:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb5-1">py <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> undname<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">py</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\dbghelp.dll"</span></span>
+<span id="cb5-2">py <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> undname<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">py</span> C<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span>\Windows\System32\dbghelp<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dll</span></span></code></pre></div></div>
+<p>А вот <code>undname.exe</code> из MSVC 14.40 это имя раскрывает правильно.</p>
+</section>
+<section id="как-обошёл" class="level2">
+<h2 class="anchored" data-anchor-id="как-обошёл">Как обошёл</h2>
+<p>В итоге перестал передавать <code>UNDNAME_NO_MS_KEYWORDS</code> и убираю ключевые слова из результата сам.</p>
+<p>В выводе с <code>UNDNAME_NO_ACCESS_SPECIFIERS</code> (<code>0x0080</code>) мне встретились соглашения о вызове перед именем или списком параметров (<code>void __cdecl f</code>, <code>void __cdecl(</code>) и модификаторы после указателей и ссылок (<code>const &amp; __ptr64)</code>, <code>)const __ptr64&amp;</code>).</p>
+<p>Для них получилось вот такое выражение:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> re</span>
+<span id="cb6-2"></span>
+<span id="cb6-3">MS_KEYWORDS <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> re.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">compile</span>(<span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">r"__</span>(?:<span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">cdecl</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">stdcall</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">fastcall</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">thiscall</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">vectorcall</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">clrcall</span>)<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\b</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> </span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">?</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;"> __</span>(?:<span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">ptr64</span><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">ptr32</span>)<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\b</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb6-4"></span>
+<span id="cb6-5"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> undecorate(name):</span>
+<span id="cb6-6">    dbghelp.UnDecorateSymbolName(name.encode(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ascii"</span>), <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>), <span class="bn" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0x0080</span>)  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># UNDNAME_NO_ACCESS_SPECIFIERS</span></span>
+<span id="cb6-7">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># A const method ends with a space ("...(void)const "), so remove that too.</span></span>
+<span id="cb6-8">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> MS_KEYWORDS.sub(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">""</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">buffer</span>.value.decode(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ascii"</span>)).rstrip()</span></code></pre></div></div>
+<p>Здесь <code>dbghelp</code> и <code>buffer</code> — объекты из примера выше. На моей DLL с 3351 экспортируемым именем результаты для 10.0.22621, 10.0.25921 и 10.0.26100 после такой обработки совпали до символа.</p>
+<p>От результата встроенного флага вывод отличается в одном месте: ref-qualifier пишется слитно — <code>const&amp;</code> вместо <code>const &amp;</code>. Для сверки мне это не мешает, если эталон получен тем же способом.</p>
+<p>Можно ещё сравнивать сами decorated-имена, а раскрытые оставлять для людей. Но при этом тоже надо учитывать, каким компилятором имена были получены.</p>
+<p><a href="../../../en/posts/2026-11-05-dbghelp-undname/index.html">EN</a></p>
+
+
+</section>
+
+ ]]></description>
+  <category>ru</category>
+  <category>C++</category>
+  <category>Windows</category>
+  <category>dbghelp</category>
+  <guid>https://ttldtor.github.io/ttldtor-blog/ru/posts/2026-11-05-dbghelp-undname/</guid>
+  <pubDate>Thu, 05 Nov 2026 00:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Parser Fix in Process</title>
   <dc:creator>ttldtor </dc:creator>

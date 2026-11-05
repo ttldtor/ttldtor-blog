@@ -2,6 +2,8 @@
   {
     "listing": "/index.html",
     "items": [
+      "/en/posts/2026-11-05-dbghelp-undname/index.html",
+      "/ru/posts/2026-11-05-dbghelp-undname/index.html",
       "/en/posts/2026-09-15-process-fix/index.html",
       "/ru/posts/2026-09-15-process-fix/index.html",
       "/en/posts/2026-08-23-first-post/index.html",
@@ -9,17 +11,19 @@
     ]
   },
   {
-    "listing": "/en/index.html",
+    "listing": "/ru/index.html",
     "items": [
-      "/en/posts/2026-09-15-process-fix/index.html",
-      "/en/posts/2026-08-23-first-post/index.html"
+      "/ru/posts/2026-11-05-dbghelp-undname/index.html",
+      "/ru/posts/2026-09-15-process-fix/index.html",
+      "/ru/posts/2026-08-23-first-post/index.html"
     ]
   },
   {
-    "listing": "/ru/index.html",
+    "listing": "/en/index.html",
     "items": [
-      "/ru/posts/2026-09-15-process-fix/index.html",
-      "/ru/posts/2026-08-23-first-post/index.html"
+      "/en/posts/2026-11-05-dbghelp-undname/index.html",
+      "/en/posts/2026-09-15-process-fix/index.html",
+      "/en/posts/2026-08-23-first-post/index.html"
     ]
   }
 ]
