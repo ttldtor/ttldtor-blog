@@ -1,0 +1,115 @@
+---
+title: "Where did dbghelp put my function parameters?"
+author: "ttldtor"
+date: 2026-11-05
+categories: [en, C++, Windows, dbghelp]
+---
+
+I was checking a DLL's exported symbols: undecorating their names with [UnDecorateSymbolName](https://learn.microsoft.com/en-us/windows/win32/api/dbghelp/nf-dbghelp-undecoratesymbolname) and comparing them with a reference list in the repository. Everything worked locally, but the check failed on `windows-2022` in CI.
+
+Turns out one version of `dbghelp.dll` undecorates the name just fine, while another loses part of the signature along the way. And it happens because of a flag that was only supposed to get rid of things like `__cdecl` and `__ptr64` in the output.
+
+## What went missing
+
+Here's a method with a `std::function<void(const ErrorInfo &)>` parameter. Its decorated name looks like this:
+
+```text
+?setHandler@ErrorManager@v8@dxfcpp@@SAXV?$function@$$A6AXAEBUErrorInfo@v8@dxfcpp@@@Z@std@@@Z
+```
+
+I undecorate it with `UNDNAME_NO_MS_KEYWORDS | UNDNAME_NO_ACCESS_SPECIFIERS` (`0x0002 | 0x0080`). I wanted a name without Microsoft's keywords and `public:`:
+
+```text
+static void dxfcpp::v8::ErrorManager::setHandler(class std::function<void (struct dxfcpp::v8::ErrorInfo const &)>)
+```
+
+Instead, I get:
+
+```text
+static void dxfcpp::v8::ErrorManager::setHandler(class std::function<void >)
+```
+
+The function parameters inside `std::function` have gone missing. Only the return type, `void`, is left.
+
+The same thing happened with `SimpleHandler<void (...)>` and the other templates with function types that I tested.
+
+## Trying different versions of `dbghelp.dll`
+
+Same name, same flags, four copies of the library:
+
+| `dbghelp.dll` version | Source | Result |
+|---|---|---|
+| 10.0.10150 | Visual Studio 2022, Graphics Debugger | correct |
+| 10.0.22621 | Windows SDK, `Debuggers\x64` | `std::function<void >` |
+| 10.0.25921 | Visual Studio 2022, TestPlatform | `std::function<void >` |
+| 10.0.26100 | Windows 11 24H2 `System32` | correct |
+
+So I couldn't reproduce the problem locally on a recent Windows 11, but CI had a version that loses the parameters.
+
+I don't know which version introduced the problem or when it was fixed. I couldn't find anything about it in the `dbghelp` documentation or release notes. All I can say from my checks is that it happens on 22621 and 25921, but not on 26100.
+
+The old 10.0.10150 undecorated this particular example correctly, but it has a different problem: it doesn't undecorate some names with rvalue references (`$$Q`) at all and returns them unchanged.
+
+## Why the flag?
+
+Without `UNDNAME_NO_MS_KEYWORDS`, those same versions undecorate the name correctly. I tried different combinations on 10.0.22621:
+
+| Flags | Result |
+|---|---|
+| `0x0000` | `public: static void __cdecl ...setHandler(class std::function<void __cdecl(struct dxfcpp::v8::ErrorInfo const & __ptr64)>)` |
+| `0x0080` | `static void __cdecl ...setHandler(class std::function<void __cdecl(struct dxfcpp::v8::ErrorInfo const & __ptr64)>)` |
+| `0x0002` | `public: static void ...setHandler(class std::function<void >)` |
+| `0x0082` | `static void ...setHandler(class std::function<void >)` |
+
+It looks like when `dbghelp` removes `__cdecl` from `void __cdecl(...)`, the parameter list after it goes away too. That's a guess based on the output, though; I haven't looked inside the library.
+
+## Try it yourself
+
+You can pick a copy of `dbghelp.dll` and run this script:
+
+```python
+import ctypes, sys
+
+name = b"?setHandler@ErrorManager@v8@dxfcpp@@SAXV?$function@$$A6AXAEBUErrorInfo@v8@dxfcpp@@@Z@std@@@Z"
+dbghelp = ctypes.WinDLL(sys.argv[1])  # Full path to the dbghelp.dll to test
+buffer = ctypes.create_string_buffer(8192)
+for flags in (0x0000, 0x0080, 0x0002, 0x0082):
+    dbghelp.UnDecorateSymbolName(name, buffer, len(buffer), flags)
+    print(hex(flags), buffer.value.decode())
+```
+
+For example:
+
+```powershell
+py -3 undname.py "C:\Program Files (x86)\Windows Kits\10\Debuggers\x64\dbghelp.dll"
+py -3 undname.py C:\Windows\System32\dbghelp.dll
+```
+
+`undname.exe` from MSVC 14.40 undecorates this name correctly, though.
+
+## The workaround
+
+In the end, I stopped passing `UNDNAME_NO_MS_KEYWORDS` and started removing the keywords from the output myself.
+
+In the output with `UNDNAME_NO_ACCESS_SPECIFIERS` (`0x0080`), I found calling conventions before the name or parameter list (`void __cdecl f`, `void __cdecl(`), and modifiers after pointers and references (`const & __ptr64)`, `)const __ptr64&`).
+
+Here's the expression I ended up using for those:
+
+```python
+import re
+
+MS_KEYWORDS = re.compile(r"__(?:cdecl|stdcall|fastcall|thiscall|vectorcall|clrcall)\b ?| __(?:ptr64|ptr32)\b")
+
+def undecorate(name):
+    dbghelp.UnDecorateSymbolName(name.encode("ascii"), buffer, len(buffer), 0x0080)  # UNDNAME_NO_ACCESS_SPECIFIERS
+    # A const method ends with a space ("...(void)const "), so remove that too.
+    return MS_KEYWORDS.sub("", buffer.value.decode("ascii")).rstrip()
+```
+
+Here, `dbghelp` and `buffer` are the objects from the example above. On my DLL with 3,351 exported names, the results from 10.0.22621, 10.0.25921 and 10.0.26100 matched character for character after this processing.
+
+There's one difference from the built-in flag's output: the ref-qualifier has no space before it — `const&` instead of `const &`. That doesn't get in the way of my comparison as long as the reference list is produced the same way.
+
+Another option is to compare the decorated names themselves and keep the undecorated ones for people to read. You'd still need to take into account which compiler produced the names, though.
+
+[RU](../../../ru/posts/2026-11-05-dbghelp-undname/index.qmd)
